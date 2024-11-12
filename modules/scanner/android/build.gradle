@@ -1,0 +1,54 @@
+apply plugin: 'com.android.library'
+
+group = 'expo.modules.scanner'
+version = '0.6.1'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useExpoPublishing()
+
+def useManagedAndroidSdkVersions = false
+if (useManagedAndroidSdkVersions) {
+  useDefaultAndroidSdkVersions()
+} else {
+  buildscript {
+    ext.safeExtGet = { prop, fallback ->
+      rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+    }
+  }
+  project.android {
+    compileSdkVersion safeExtGet("compileSdkVersion", 34)
+    defaultConfig {
+      minSdkVersion safeExtGet("minSdkVersion", 21)
+      targetSdkVersion safeExtGet("targetSdkVersion", 34)
+    }
+  }
+}
+
+android {
+  namespace "expo.modules.scanner"
+  defaultConfig {
+    versionCode 1
+    versionName "0.6.1"
+  }
+  lintOptions {
+    abortOnError false
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+dependencies {
+    implementation 'com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1'
+    implementation "com.google.android.gms:play-services-base:18.2.0"
+}
