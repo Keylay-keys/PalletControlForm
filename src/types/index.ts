@@ -21,7 +21,7 @@ export interface PageInfo {
   export interface PCFScanResult {
     lineItems: PCFLineItem[];
     containerCode: string;
-    pageInfo: PageInfo;          // Added for multi-page support
+    pageInfo?: PageInfo;          // Added for multi-page support
   }
   
   // Database Types

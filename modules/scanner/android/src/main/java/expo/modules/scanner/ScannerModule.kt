@@ -1,6 +1,7 @@
 package expo.modules.scanner
 
 import android.app.Activity.RESULT_OK
+import android.app.Activity.RESULT_CANCELED
 import android.widget.Toast
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
@@ -37,47 +38,49 @@ class ScannerModule : Module() {
     Events("onChange")
 
     AsyncFunction("scan") { promise: Promise ->
-  try {
-    scanner.getStartScanIntent(activity)
-      .addOnSuccessListener { intentSender ->
-        try {
-          activity.startIntentSenderForResult(
-            intentSender,
-            REQUEST_CODE,
-            null,
-            0,
-            0,
-            0,
-            null
-          )
-          promise.resolve(null)
-        } catch (e: Exception) {
-          promise.reject(
-            "SCAN_ERROR", 
-            "Failed to start scanner: ${e.message}",
-            e
-          )
-        }
-      }
-      .addOnFailureListener { e ->
+      try {
+        scanner.getStartScanIntent(activity)
+          .addOnSuccessListener { intentSender ->
+            try {
+              activity.startIntentSenderForResult(
+                intentSender,
+                REQUEST_CODE,
+                null,
+                0,
+                0,
+                0,
+                null
+              )
+              promise.resolve(null)
+            } catch (e: Exception) {
+              promise.reject(
+                "SCAN_ERROR", 
+                "Failed to start scanner: ${e.message}",
+                e
+              )
+            }
+          }
+          .addOnFailureListener { e ->
+            promise.reject(
+              "SCAN_ERROR",
+              "Failed to get scan intent: ${e.message}",
+              e
+            )
+          }
+      } catch (e: Exception) {
         promise.reject(
           "SCAN_ERROR",
-          "Failed to get scan intent: ${e.message}",
+          "Scanner initialization failed: ${e.message}",
           e
         )
       }
-  } catch (e: Exception) {
-    promise.reject(
-      "SCAN_ERROR",
-      "Scanner initialization failed: ${e.message}",
-      e
-    )
-  }
-}
+    }
 
     OnActivityResult { activity, onActivityResultPayload ->
-      if (onActivityResultPayload.requestCode == REQUEST_CODE) {
-        if (onActivityResultPayload.resultCode == RESULT_OK) {
+      if (onActivityResultPayload.requestCode != REQUEST_CODE) return@OnActivityResult
+
+      when (onActivityResultPayload.resultCode) {
+        RESULT_OK -> {
           val docResult = GmsDocumentScanningResult.fromActivityResultIntent(onActivityResultPayload.data)
           docResult?.pages?.let { pages ->
             if (pages.isNotEmpty()) {
@@ -85,12 +88,30 @@ class ScannerModule : Module() {
               sendEvent("onChange", mapOf(
                 "value" to imageUri.toString()
               ))
+            } else {
+              // No pages scanned
+              sendEvent("onChange", mapOf(
+                "type" to "cancelled"
+              ))
             }
+          } ?: run {
+            // Null result
+            sendEvent("onChange", mapOf(
+              "type" to "cancelled"
+            ))
           }
-        } else {
-          // Handle cancelled or failed scan
+        }
+        RESULT_CANCELED -> {
+          // User explicitly cancelled
           sendEvent("onChange", mapOf(
-            "error" to "Scan was cancelled or failed"
+            "type" to "cancelled"
+          ))
+        }
+        else -> {
+          // Any other result
+          sendEvent("onChange", mapOf(
+            "type" to "error",
+            "message" to "Scan failed or was cancelled"
           ))
         }
       }
