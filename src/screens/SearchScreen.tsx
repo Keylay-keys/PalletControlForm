@@ -1,25 +1,28 @@
-// src/screens/SettingsScreen.tsx
+// src/screens/SearchScreen.tsx
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '../navigation';
+import { useNavigation } from '@react-navigation/native';
+import { RootParamList } from '../types'
+import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function SettingsScreen() {
-  const { navigate } = useNavigation();
+type SearchScreenNavigationProp = StackNavigationProp<RootParamList, 'Search'>;
+
+export default function SearchScreen() {
+  const navigation = useNavigation<SearchScreenNavigationProp>();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => navigate('Dashboard')}
+          onPress={() => navigation.navigate('Dashboard', { initialView: 'operator' })}
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.title}>Search Menu</Text>
       </View>
       <View style={styles.content}>
-        {/* Search content will go here */}
         <Text>Search</Text>
       </View>
     </View>

@@ -14,6 +14,7 @@ export interface LineItem {
 
 export interface OCRResult {
   lineItems: LineItem[];
+  isValid?: boolean;
   containerCode: string;
   pageInfo: {
     current: number;

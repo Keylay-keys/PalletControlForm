@@ -1,69 +1,56 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+// AuthScreen.tsx
+import React from 'react';
+import { View, StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import LoginForm from '../components/auth/LoginForm';
-import SignupForm from '../components/auth/SignupForm';
-import { UserData } from '../interfaces/auth';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../types';
+import CustomAuthUI from '../components/auth/CustomAuthUI';
+import { useTheme } from '../hooks/useTheme';
 
 type AuthScreenNavigationProp = StackNavigationProp<RootParamList, 'Auth'>;
 
 export default function AuthScreen() {
+  const { colors } = useTheme();
   const navigation = useNavigation<AuthScreenNavigationProp>();
-  const [isLogin, setIsLogin] = useState(true);
 
-  const handleAuthSuccess = (user: UserData) => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Dashboard' }],
-    });
+  const handleEmailAuth = () => {
+    navigation.navigate('Login');
+  };
+
+  const handleGoogleAuth = () => {
+    console.log('Google sign-in selected (integration pending)');
+  };
+
+  const handleCreateAccount = () => {
+    navigation.navigate('OnboardingStart');
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Route Logic</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>Route Spark</Text>
       </View>
-      
-      {isLogin ? (
-        <LoginForm onLoginSuccess={handleAuthSuccess} />
-      ) : (
-        <SignupForm onSignupSuccess={handleAuthSuccess} />
-      )}
-
-      <TouchableOpacity
-        style={styles.switchButton}
-        onPress={() => setIsLogin(!isLogin)}
-      >
-        <Text style={styles.switchText}>
-          {isLogin ? 'Create Account' : 'Back to Login'}
-        </Text>
-      </TouchableOpacity>
-    </View>
+      <CustomAuthUI
+        onEmailAuth={handleEmailAuth}
+        onGoogleAuth={handleGoogleAuth}
+        onCreateAccount={handleCreateAccount}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#0f172a' 
-},
+  container: {
+    flex: 1,
+    padding: 16,
+  },
   header: {
-    padding: 16, 
-    alignItems: 'center', 
-    backgroundColor: '#660000' 
-},
-  title: { 
-    color: '#fff', 
-    fontSize: 20, 
-    fontWeight: 'bold' 
-},
-  switchButton: { 
-    padding: 16, 
-    alignItems: 'center' 
-},
-  switchText: { 
-    color: '#94a3b8', 
-    fontSize: 14 },
+    padding: 20,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
 });

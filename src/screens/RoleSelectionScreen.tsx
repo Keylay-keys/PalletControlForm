@@ -1,17 +1,24 @@
+// RoleSelectionScreen.tsx
 import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootParamList } from '../types';
+import { useTheme } from '../hooks/useTheme';
+
+type RoleSelectionScreenNavigationProp = StackNavigationProp<RootParamList, 'RoleSelection'>;
 
 export default function RoleSelectionScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<RoleSelectionScreenNavigationProp>();
+  const { colors } = useTheme();
 
-  const handleRoleSelection = (role: string) => {
+  const handleRoleSelection = (role: 'owner' | 'ownerOnly' | 'ownerWithTeam') => {
     if (role === 'owner') {
-      navigation.navigate('OwnerOnboarding');
-    } else if (role === 'teamMember') {
-      navigation.navigate('TeamMemberOnboarding');
+      navigation.navigate('OwnerOnboarding', { hasTeamMembers: false });
     } else if (role === 'ownerOnly') {
       navigation.navigate('OwnerOnlyOnboarding');
+    } else if (role === 'ownerWithTeam') {
+      navigation.navigate('OwnerOnboarding', { hasTeamMembers: true });
     }
   };
 
@@ -25,6 +32,7 @@ export default function RoleSelectionScreen() {
       <TouchableOpacity
         style={styles.button}
         onPress={() => handleRoleSelection('owner')}
+        activeOpacity={0.8}
       >
         <Text style={styles.buttonText}>I run one or more routes myself</Text>
         <Text style={styles.buttonSubtext}>
@@ -34,11 +42,11 @@ export default function RoleSelectionScreen() {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => handleRoleSelection('teamMember')}
+        onPress={() => handleRoleSelection('ownerWithTeam')}
       >
-        <Text style={styles.buttonText}>I work on a route assigned to me</Text>
+        <Text style={styles.buttonText}>I run routes and have team members</Text>
         <Text style={styles.buttonSubtext}>
-          You assist with tasks on a route assigned to you by an owner.
+          You own and operate routes and manage team members working on other routes.
         </Text>
       </TouchableOpacity>
 
@@ -50,11 +58,29 @@ export default function RoleSelectionScreen() {
           I oversee routes without working on them
         </Text>
         <Text style={styles.buttonSubtext}>
-          You manage routes and assign them to team members but don’t operate them yourself.
+          You manage routes and assign them to team members but don't operate them yourself.
         </Text>
       </TouchableOpacity>
     </View>
   );
+}
+
+const colors = {
+  // Main theme colors
+  primary: '#1EA896',      // Teal - main accent color
+  secondary: '#57CC99',    // Mint green - secondary accent
+  
+  // Background colors
+  background: '#1E1E1E',   // Dark gray - main background
+  cardBg: '#2D2D2D',      // Lighter gray - for cards/inputs
+  
+  // Text colors
+  textPrimary: '#FFFFFF',  // White - primary text
+  textSecondary: '#BBBBBB', // Light gray - secondary text
+  textMuted: '#808080',    // Muted text for descriptions
+  
+  // Border colors
+  border: '#383838'        // Subtle borders
 }
 
 const styles = StyleSheet.create({
@@ -62,37 +88,38 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,  // Changed from '#0f172a'
   },
   title: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 16,
+    color: colors.textPrimary,  // Changed from '#ffffff'
   },
   description: {
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
-    marginBottom: 24,
-    color: '#6b7280',
+    marginBottom: 28,
+    color: colors.textMuted,  // Changed from '#6b7280'
   },
   button: {
-    backgroundColor: '#660000',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: colors.cardBg,
+    padding: 20,
     borderRadius: 8,
     marginBottom: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+    elevation: 2,
   },
   buttonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ffffff',
-    textAlign: 'center',
+    color: colors.textPrimary,
   },
   buttonSubtext: {
     fontSize: 14,
-    color: '#e5e7eb',
-    textAlign: 'center',
+    color: colors.textSecondary,
     marginTop: 4,
   },
 });

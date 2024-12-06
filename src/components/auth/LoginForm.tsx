@@ -1,81 +1,109 @@
-// components/auth/LoginForm.tsx
+// src/components/auth/LoginForm.tsx
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import { View, StyleSheet, TextInput, TouchableOpacity, Text, Alert } from 'react-native';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { UserData } from '../../interfaces/auth';
+import { useTheme } from '../../hooks/useTheme';
 
 interface LoginFormProps {
-  onLoginSuccess: (userData: UserData) => void;
+  onLoginSuccess: (userData: UserData) => void;  // Updated to match interface
 }
 
 export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
-  const [routeNumber, setRouteNumber] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email.trim() || !routeNumber.trim()) {
-      Alert.alert('Error', 'Please enter both email and route number');
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please enter both email and password');
       return;
     }
 
     setLoading(true);
 
     try {
-      const password = `route${routeNumber}`; // Ensure this matches the signup logic
-      const result = await auth().signInWithEmailAndPassword(email, password);
+      const auth = getAuth();
+      const firestore = getFirestore();
 
-      const userDoc = await firestore()
-        .collection('users')
-        .doc(result.user.uid)
-        .get();
+      // Authenticate user
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const user = result.user;
 
-      if (userDoc.exists && userDoc.data()?.routeNumber === routeNumber) {
-        onLoginSuccess({
-          uid: result.user.uid,
-          email: result.user.email!,
-          routeNumber,
-        });
-      } else {
-        Alert.alert('Error', 'Invalid route number for this account');
-        await auth().signOut();
+      // Get user data from Firestore
+      const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+      const userData = userDoc.data();
+
+      if (!userDoc.exists() || !userData) {
+        throw new Error('User data not found');
       }
+
+      // Call onLoginSuccess with combined user data
+      onLoginSuccess({
+        uid: user.uid,
+        email: user.email!,
+        routeNumber: userData.routeNumber || '',
+        emailVerified: user.emailVerified,
+        adminReviewStatus: userData.adminReviewStatus || 'pending',
+        hasRoleSelected: userData.hasRoleSelected || false,
+        hasTeam: userData.hasTeam || false
+      });
+
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert('Login Error', 'Unable to login. Please check your credentials.');
+      Alert.alert('Login Error', 'Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <TextInput
-        style={styles.input}
-        placeholder="Work Email"
-        placeholderTextColor="#94a3b8"
+        style={[
+          styles.input,
+          {
+            backgroundColor: colors.cardBg,
+            borderColor: colors.border,
+            color: colors.textPrimary,
+          },
+        ]}
+        placeholder="Email"
+        placeholderTextColor={colors.textSecondary}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
-        editable={!loading} // Disable input during loading
+        editable={!loading}
       />
       <TextInput
-        style={styles.input}
-        placeholder="Route Number"
-        placeholderTextColor="#94a3b8"
-        value={routeNumber}
-        onChangeText={setRouteNumber}
-        keyboardType="numeric"
-        editable={!loading} // Disable input during loading
+        style={[
+          styles.input,
+          {
+            backgroundColor: colors.cardBg,
+            borderColor: colors.border,
+            color: colors.textPrimary,
+          },
+        ]}
+        placeholder="Password"
+        placeholderTextColor={colors.textSecondary}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        editable={!loading}
       />
       <TouchableOpacity
-        style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+        style={[
+          styles.loginButton,
+          { backgroundColor: colors.primary },
+          loading && styles.loginButtonDisabled,
+        ]}
         onPress={handleLogin}
         disabled={loading}
       >
-        <Text style={styles.loginButtonText}>
+        <Text style={[styles.loginButtonText, { color: colors.textPrimary }]}>
           {loading ? 'Logging in...' : 'Login'}
         </Text>
       </TouchableOpacity>
@@ -88,20 +116,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 16,
-    backgroundColor: '#0f172a',
   },
   input: {
-    backgroundColor: '#1e293b',
-    borderWidth: 1,
-    borderColor: '#334155',
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
-    color: '#e2e8f0',
     fontSize: 16,
+    borderWidth: 1,
   },
   loginButton: {
-    backgroundColor: '#660000',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -110,7 +133,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   loginButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },

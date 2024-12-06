@@ -1,47 +1,38 @@
 // src/components/Scanner/ScanButton.tsx
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
-interface ScanButtonProps {
-  onPress: () => void;
-  scanning: boolean;
-}
+type ScanButtonProps = {
+  onPress: (uri: string) => Promise<void>; // Define the onPress prop
+  scanning: boolean;                     // Define scanning state
+};
 
-export const ScanButton = ({ onPress, scanning }: ScanButtonProps) => (
-  <TouchableOpacity
-    style={[styles.scanButton, scanning && styles.scanButtonDisabled]}
-    onPress={onPress}
-    disabled={scanning}
-  >
-    {scanning ? (
-      <Text style={styles.scanButtonText}>Scanning...</Text>
-    ) : (
-      <>
-        <Ionicons name="scan" size={48} color="white" />
-        <Text style={styles.scanButtonText}>Scan PCF</Text>
-      </>
-    )}
-  </TouchableOpacity>
-);
+export const ScanButton: React.FC<ScanButtonProps> = ({ onPress, scanning }) => {
+  return (
+    <TouchableOpacity 
+      style={styles.button} 
+      onPress={() => onPress('uri-placeholder')} // Pass URI when triggering
+      disabled={scanning}
+    >
+      {scanning ? (
+        <ActivityIndicator color="#FFF" />
+      ) : (
+        <Text style={styles.text}>Scan PCF</Text>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
-  scanButton: {
-    backgroundColor: '#660000',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    justifyContent: 'center',
+  button: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: '#007BFF',
     alignItems: 'center',
-    elevation: 5,
-    marginBottom: 20,
   },
-  scanButtonDisabled: {
-    backgroundColor: '#93c5fd',
-  },
-  scanButtonText: {
-    color: 'white',
-    fontSize: 18,
+  text: {
+    color: '#FFF',
+    fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 12,
   },
 });

@@ -1,10 +1,14 @@
 // src/interfaces/auth.ts
 export interface UserData {
     uid: string;
-    routeNumber: string;
     email: string;
-}
-
-export interface LoginScreenProps {
+    routeNumber: string;
+    emailVerified?: boolean;
+    adminReviewStatus?: 'pending' | 'approved' | 'rejected';
+    hasRoleSelected?: boolean; // Ensures compatibility with LoginScreen logic
+    hasTeam?: boolean; // For dashboard redirection logic
+  }
+  
+  export interface LoginScreenProps {
     onLoginSuccess: (userData: UserData) => void;
-}
+  }

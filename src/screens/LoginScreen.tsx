@@ -1,109 +1,55 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
+// src/screens/LoginScreen.tsx
+import React from 'react';
+import { Alert, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import LoginForm from '../components/auth/LoginForm';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootParamList } from '../types';
+import { UserData } from '../interfaces/auth';
 
-interface LoginScreenProps {
-  onLoginSuccess: (userData: any) => void;
-}
+type LoginScreenNavigationProp = StackNavigationProp<RootParamList, 'Login'>;
 
-export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
-  const [routeNumber, setRouteNumber] = useState('');
+export default function LoginScreen() {
+  const navigation = useNavigation<LoginScreenNavigationProp>();
 
-  const handleLogin = async () => {
-    console.log('Login button pressed');
+  const handleLoginSuccess = (userData: UserData) => {
+    console.log('User logged in:', userData);
 
-    if (!routeNumber.trim()) {
-      alert('Please enter a valid Route Number');
-      return;
-    }
-
-    try {
-      const response = await fetch('http://10.0.0.45:3000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ routeNumber }),
-      });
-
-      const result = await response.json();
-      console.log('Server response:', result);
-
-      if (result.success) {
-        console.log('Login successful');
-        onLoginSuccess(result.user); // Call the success handler instead of navigating directly
-      } else {
-        console.log('Login failed with message:', result.message);
-        alert(result.message);
-      }
-    } catch (error) {
-      console.error('Error during login:', error);
-      alert('Error connecting to the server.');
+    switch (userData.adminReviewStatus) {
+      case 'pending':
+        navigation.navigate('PendingReview');
+        break;
+      case 'approved':
+        if (!userData.hasRoleSelected) {
+          navigation.navigate('RoleSelection');
+        } else {
+          // Pass the initialView parameter based on hasTeam
+          navigation.navigate('Dashboard', {
+            initialView: userData.hasTeam ? 'management' : 'operator',
+          });
+        }
+        break;
+      case 'rejected':
+        Alert.alert(
+          'Account Rejected',
+          'Your account verification was unsuccessful. Please contact support.'
+        );
+        break;
+      default:
+        navigation.navigate('Auth');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Route Logic</Text>
-      </View>
-
-      <View style={styles.content}>
-        <TextInput
-          style={styles.input}
-          placeholder="Route Number"
-          placeholderTextColor="#94a3b8" // Match placeholder to the dark theme
-          value={routeNumber}
-          onChangeText={setRouteNumber}
-          keyboardType="numeric"
-        />
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <LoginForm onLoginSuccess={handleLoginSuccess} />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a', // Dark background
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 20,
-    backgroundColor: '#660000', // Dark header background
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155', // Border to separate header
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#e2e8f0', // Light text color for the title
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  input: {
-    backgroundColor: '#1e293b', // Dark input background
-    borderWidth: 1,
-    borderColor: '#334155', // Subtle border for the input
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    color: '#e2e8f0', // Light text color for input
-    fontSize: 16,
-  },
-  loginButton: {
-    backgroundColor: '#660000', // Bright blue for the button
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  loginButtonText: {
-    color: '#fff', // White text for the button
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

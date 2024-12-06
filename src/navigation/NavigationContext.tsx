@@ -1,8 +1,9 @@
+// NavigationContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { View } from 'react-native';
+import { RootParamList } from '../types'; // Import the RootParamList for screen names
 
-// Define the valid screen names for navigation
-export type ScreenName = 'Login' | 'Intro' | 'Dashboard' | 'Scan' | 'Search' | 'Settings';
+// Derive valid screen names from RootParamList
+export type ScreenName = keyof RootParamList;
 
 interface NavigationContextValue {
   currentScreen: ScreenName;

@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.kpindustries.routelogic'
+    namespace 'com.kpindustries.routespark'
     defaultConfig {
-        applicationId 'com.kpindustries.routelogic'
+        applicationId 'com.kpindustries.routespark'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -152,6 +152,7 @@ dependencies {
     // Import the Firebase BoM (Bill of Materials) to manage versions
     implementation platform('com.google.firebase:firebase-bom:33.6.0')
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.firebaseui:firebase-ui-auth:7.2.0'
     implementation 'com.google.firebase:firebase-auth' // For Authentication
     implementation 'com.google.firebase:firebase-firestore' // For Firestore Database
     implementation 'com.google.firebase:firebase-storage' // For Cloud Storage

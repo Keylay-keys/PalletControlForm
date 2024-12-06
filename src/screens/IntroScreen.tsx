@@ -1,20 +1,26 @@
+// src/screens/IntroScreen.tsx
 import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { useNavigation } from '../navigation';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootParamList } from '../types';
+
+type IntroScreenNavigationProp = StackNavigationProp<RootParamList, 'Intro'>;
 
 export default function IntroScreen() {
-  const { navigate } = useNavigation();
+  const navigation = useNavigation<IntroScreenNavigationProp>();
 
   const handleGetStarted = () => {
-    navigate('Dashboard');
+    // Ensure you pass the required `initialView` parameter
+    navigation.navigate('Dashboard', { initialView: 'operator' }); // Or 'management' based on your app logic
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Welcome to Route Logic</Text>
+        <Text style={styles.title}>Welcome to Route Spark</Text>
       </View>
-      
+
       <View style={styles.content}>
         <Text style={styles.text}>
           Here's how to use the app:

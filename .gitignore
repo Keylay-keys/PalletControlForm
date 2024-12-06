@@ -67,4 +67,6 @@ android/build/
 modules/**/android/build/
 *.bin
 *.dex
-*.class
+# Firebase config
+google-services.json
+android/app/google-services.json
